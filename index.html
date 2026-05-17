@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Feedback & Analytics</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Google Font: Kanit -->
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js for Dashboard Graphics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    :root {
+      --primary-color: #4361ee;
+      --highlight-color: #2ec4b6;
+      --improvement-color: #e71d36;
+      --suggestion-color: #ff9f1c;
+      --bg-light: #f8f9fc;
+    }
+
+    body {
+      font-family: 'Kanit', sans-serif;
+      background-color: var(--bg-light);
+      padding-bottom: 50px;
+    }
+
+    .app-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 15px;
+      position: relative;
+    }
+
+    .version-tag {
+      position: absolute;
+      top: 25px;
+      right: 15px;
+      background-color: #e2e8f0;
+      color: #64748b;
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-weight: 500;
+    }
+
+    .header-section {
+      text-align: center;
+      margin-bottom: 25px;
+      padding: 20px 0 10px 0;
+    }
+
+    .header-section h2 {
+      font-weight: 600;
+      font-size: 1.6rem;
+      color: #1e293b;
+    }
+
+    .selection-card {
+      background: white;
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+
+    .form-label {
+      font-weight: 500;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+
+    .form-select-lg {
+      border-radius: 12px;
+      font-size: 1rem;
+      border: 2px solid #e2e8f0;
+      font-weight: 500;
+    }
+
+    .event-meta-box {
+      margin-top: 15px;
+      padding: 12px 16px;
+      background-color: #f1f5f9;
+      border-radius: 10px;
+      border-left: 4px solid #cbd5e1;
+      font-size: 0.95rem;
+      display: none;
+    }
+    .meta-item {
+      display: inline-block;
+      margin-right: 20px;
+      color: #475569;
+    }
+    .meta-item i {
+      color: var(--primary-color);
+      width: 18px;
+    }
+
+    .main-nav {
+      margin-bottom: 20px;
+    }
+    
+    .main-nav .nav-link {
+      color: #64748b;
+      font-weight: 500;
+      border-radius: 10px;
+      padding: 10px 20px;
+    }
+
+    .main-nav .nav-link.active {
+      background-color: var(--primary-color) !important;
+      color: white !important;
+    }
+
+    .nav-pills-wrapper {
+      overflow-x: auto;
+      white-space: nowrap;
+      display: flex;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .nav-pills .nav-link {
+      color: #64748b;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      margin-right: 8px;
+      border-radius: 100px;
+      padding: 8px 18px;
+      font-size: 0.9rem;
+    }
+    
+    .nav-link.active[id="tab-1"] { background-color: var(--highlight-color); border-color: var(--highlight-color); color: white;}
+    .nav-link.active[id="tab-2"] { background-color: var(--improvement-color); border-color: var(--improvement-color); color: white;}
+    .nav-link.active[id="tab-3"] { background-color: var(--suggestion-color); border-color: var(--suggestion-color); color: white;}
+
+    .feedback-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .feedback-item {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      border-left: 6px solid #ddd;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .item-highlight { border-left-color: var(--highlight-color); }
+    .item-improvement { border-left-color: var(--improvement-color); }
+    .item-suggestion { border-left-color: var(--suggestion-color); }
+
+    .stat-card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+      text-align: center;
+      height: 100%;
+    }
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-top: 5px;
+    }
+
+    .keyword-badge {
+      display: inline-block;
+      background: #e2e8f0;
+      color: #334155;
+      padding: 6px 12px;
+      border-radius: 8px;
+      margin: 4px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .loading-overlay {
+      display: none;
+      text-align: center;
+      padding: 40px 0;
+    }
+
+    mark.keyword-hl {
+      background-color: #fff3cd; 
+      color: #664d03;
+      padding: 0 4px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .form-document-tag {
+      position: fixed;
+      bottom: 12px;
+      right: 15px;
+      font-size: 0.75rem;
+      color: #94a3b8; 
+      font-weight: 400;
+      letter-spacing: 0.5px;
+      z-index: 9999; 
+      pointer-events: none; 
+    }
+
+    @media (max-width: 576px) {
+      .form-document-tag {
+        bottom: 8px;
+        right: 10px;
+        font-size: 0.7rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <div id="versionDisplay" class="version-tag">...</div>
+
+    <div class="header-section">
+      <h2><i class="fa-solid fa-comments text-primary me-2"></i> Feedback & Analytics</h2>
+    </div>
+
+    <div class="selection-card">
+      <label for="eventSelect" class="form-label">Events Name</label>
+      <select class="form-select form-select-lg" id="eventSelect" onchange="loadFeedbackData()">
+        <option value="">-- กำลังโหลดข้อมูล... --</option>
+      </select>
+      
+      <div id="eventMetaBox" class="event-meta-box">
+        <span class="meta-item"><i class="fa-solid fa-location-dot me-1"></i><b>สถานที่ :</b> <span id="metaLocation">กำลังโหลด...</span></span>
+        <span class="meta-item"><i class="fa-solid fa-calendar-days me-1"></i><b>วันที่ :</b> <span id="metaDate">กำลังโหลด...</span></span>
+      </div>
+    </div>
+
+    <div id="loader" class="loading-overlay">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="mt-2 text-muted">กำลังดึงและวิเคราะห์ข้อมูลล่าสุด...</p>
+    </div>
+
+    <div id="mainDisplay" style="display: none;">
+      
+      <ul class="nav nav-tabs main-nav nav-justified" id="mainTab" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments-panel" type="button"><i class="fa-solid fa-list-ul me-2"></i>รายการข้อความทั้งหมด</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#dashboard-panel" type="button"><i class="fa-solid fa-chart-pie me-2"></i>Analytics วิเคราะห์ภาพรวม</button>
+        </li>
+      </ul>
+
+      <div class="tab-content" id="mainTabContent">
+        
+        <div class="tab-pane fade show active" id="comments-panel" role="tabpanel">
+          <div class="nav-pills-wrapper">
+            <ul class="nav nav-pills" id="pills-tab" role="tablist">
+              <li class="nav-item">
+                <button class="nav-link active" id="tab-1" data-bs-toggle="pill" data-bs-target="#content-1" type="button"><i class="fa-solid fa-star me-1"></i> 1. จุดเด่นที่ประทับใจ</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" id="tab-2" data-bs-toggle="pill" data-bs-target="#content-2" type="button"><i class="fa-solid fa-circle-exclamation me-1"></i> 2. จุดที่ควรปรับปรุง</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" id="tab-3" data-bs-toggle="pill" data-bs-target="#content-3" type="button"><i class="fa-solid fa-lightbulb me-1"></i> 3. ข้อเสนอแนะ</button>
+              </li>
+            </ul>
+          </div>
+
+          <div class="tab-content" id="pills-tabContent">
+            <div class="tab-pane fade show active" id="content-1" role="tabpanel">
+              <div id="highlightsList" class="feedback-list"></div>
+            </div>
+            <div class="tab-pane fade" id="content-2" role="tabpanel">
+              <div id="improvementsList" class="feedback-list"></div>
+            </div>
+            <div class="tab-pane fade" id="content-3" role="tabpanel">
+              <div id="suggestionsList" class="feedback-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade" id="dashboard-panel" role="tabpanel">
+          <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+              <div class="stat-card" style="border-top: 4px solid var(--primary-color);">
+                <div class="text-muted small">ความคิดเห็นทั้งหมด</div>
+                <div class="stat-number text-primary" id="totalCount">0</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-card" style="border-top: 4px solid var(--highlight-color);">
+                <div class="text-muted small">จุดเด่น (ประทับใจ)</div>
+                <div class="stat-number" id="highCount" style="color: var(--highlight-color);">0</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-card" style="border-top: 4px solid var(--improvement-color);">
+                <div class="text-muted small">จุดควรปรับปรุง</div>
+                <div class="stat-number" id="impCount" style="color: var(--improvement-color);">0</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-card" style="border-top: 4px solid var(--suggestion-color);">
+                <div class="text-muted small">ข้อเสนอแนะ</div>
+                <div class="stat-number" id="sugCount" style="color: var(--suggestion-color);">0</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-4">
+            <div class="col-12 col-md-5">
+              <div class="stat-card">
+                <h5 class="card-title text-start mb-3" style="font-size: 1rem;"><i class="fa-solid fa-pie-chart text-secondary me-2"></i>สัดส่วนประเภทความคิดเห็น</h5>
+                <div style="max-width: 250px; margin: 0 auto;">
+                  <canvas id="feedbackPieChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-md-7">
+              <div class="stat-card text-start">
+                <h5 class="card-title mb-3" style="font-size: 1rem;"><i class="fa-solid fa-tags text-secondary me-2"></i>คำสำคัญที่พบบ่อยในบทวิเคราะห์ (Top Keywords)</h5>
+                <div id="keywordsContainer" class="py-2"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // ⚠️ นำลิงก์ Web App URL ที่ได้จากหน้า Google Apps Script มาวางแทนช่องว่างนี้ (สำหรับเวลาเปิดใช้งานผ่าน GitHub)
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzFhv4bBrbgSLglNfRRQz1Gj-Ng-yCrsNVaMGgHl0cxu6qGFAEe5exRhTLUTP7jAIJ7zQ/exec";
+
+    let feedbackChart = null;
+
+    // ระบบตรวจจับพิกัดสากล (ถ้าเปิดในคลังสคริปต์ของ Google จะดึง URL ตนเองมาใช้ทำสัญญารับส่งทันที)
+    function getAPIEndpoint() {
+      if (window.location.href.indexOf('script.google.com') !== -1) {
+        return window.location.href.replace(/[\?#].*$/, '');
+      }
+      return WEB_APP_URL;
+    }
+
+    async function fetchFromGAS(payload) {
+      const endpoint = getAPIEndpoint();
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      return await response.json();
+    }
+
+    window.onload = () => {
+      fetchFromGAS({ action: 'getAppVersion' }).then(res => {
+        if(res.success) document.getElementById('versionDisplay').textContent = res.version;
+      }).catch(err => console.error(err));
+
+      fetchFromGAS({ action: 'getDropdownList' }).then(res => {
+        if(res.success) populateDropdown(res.list);
+      }).catch(err => console.error(err));
+    };
+
+    function populateDropdown(list) {
+      const select = document.getElementById('eventSelect');
+      select.innerHTML = '';
+      if (!list || list.length === 0) {
+        select.innerHTML = '<option value="">ไม่พบข้อมูลในระบบ</option>';
+        return;
+      }
+      list.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item; opt.textContent = item;
+        select.appendChild(opt);
+      });
+      if(select.options.length > 0) loadFeedbackData();
+    }
+
+    function loadFeedbackData() {
+      const val = document.getElementById('eventSelect').value;
+      if (!val) {
+        document.getElementById('mainDisplay').style.display = 'none';
+        document.getElementById('eventMetaBox').style.display = 'none';
+        return;
+      }
+      
+      document.getElementById('loader').style.display = 'block';
+      document.getElementById('mainDisplay').style.display = 'none';
+      document.getElementById('eventMetaBox').style.display = 'block';
+      document.getElementById('metaLocation').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+      document.getElementById('metaDate').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+      
+      fetchFromGAS({ action: 'getFeedbackData', key: val }).then(res => {
+        if(res.success) {
+          renderData(res.data);
+          buildDashboard(res.data);
+        }
+      }).catch(err => console.error(err));
+
+      fetchFromGAS({ action: 'getEventDetails', key: val }).then(res => {
+        if (res.success && res.meta) {
+          document.getElementById('metaLocation').textContent = res.meta.location;
+          document.getElementById('metaDate').textContent = res.meta.date;
+        } else {
+          document.getElementById('metaLocation').textContent = 'ไม่พบข้อมูล';
+          document.getElementById('metaDate').textContent = 'ไม่พบข้อมูล';
+        }
+      }).catch(err => console.error(err));
+    }
+
+    function buildDashboard(data) {
+      const hLen = data.highlights ? data.highlights.length : 0;
+      const iLen = data.improvements ? data.improvements.length : 0;
+      const sLen = data.suggestions ? data.suggestions.length : 0;
+      const total = hLen + iLen + sLen;
+
+      document.getElementById('totalCount').textContent = total;
+      document.getElementById('highCount').textContent = hLen;
+      document.getElementById('impCount').textContent = iLen;
+      document.getElementById('sugCount').textContent = sLen;
+
+      if(feedbackChart) { feedbackChart.destroy(); }
+
+      const ctx = document.getElementById('feedbackPieChart').getContext('2d');
+      feedbackChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['จุดเด่น', 'ควรปรับปรุง', 'ข้อเสนอแนะ'],
+          datasets: [{
+            data: [hLen, iLen, sLen],
+            backgroundColor: ['#2ec4b6', '#e71d36', '#ff9f1c'],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'bottom', labels: { font: { family: 'Kanit' } } } }
+        }
+      });
+
+      analyzeKeywords(data);
+    }
+
+    function analyzeKeywords(data) {
+      const container = document.getElementById('keywordsContainer');
+      container.innerHTML = '';
+      
+      const targetKeywords = [
+        'ดีมาก', 'ประทับใจ', 'ยอดเยี่ยม', 'ชอบมาก', 'สนุก', 'ได้ความรู้', 'คุ้มค่า', 'เข้าใจง่าย',
+        'วิทยากร', 'อาจารย์', 'ผู้ดำเนินรายการ', 'พิธีกร', 'บรรยาย', 'การสอน', 'อธิบาย',
+        'สถานที่', 'ห้องน้ำ', 'แอร์', 'ที่จอดรถ', 'ที่นั่ง', 'โต๊ะ', 'เก้าอี้', 'ไฟ', 'เครื่องเสียง', 'ไมโครโฟน',
+        'อาหาร', 'เบรค', 'ขนม', 'น้ำดื่ม', 'เวลา', 'ตรงเวลา', 'กระชับ', 'ช้า', 'เร็วไป',
+        'ระบบ', 'สไลด์', 'เอกสาร', 'ดาวน์โหลด', 'ลงทะเบียน', 'อินเทอร์เน็ต', 'wifi', 'สัญญาณ'
+      ];
+
+      const txtHighlight = (data.highlights || []).join(' ').toLowerCase();
+      const txtImprovement = (data.improvements || []).join(' ').toLowerCase();
+      const txtSuggestion = (data.suggestions || []).join(' ').toLowerCase();
+
+      if (!txtHighlight && !txtImprovement && !txtSuggestion) {
+        container.innerHTML = '<span class="text-muted">ไม่มีข้อมูลคำสำคัญเพียงพอ</span>';
+        return;
+      }
+
+      let kwList = [];
+      targetKeywords.forEach(keyword => {
+        const regex = new RegExp(keyword, 'g');
+        const matchH = txtHighlight.match(regex);
+        if (matchH) kwList.push({ word: keyword, count: matchH.length, type: 'H', typeName: 'จุดเด่น', bg: '#d1e7dd', text: '#0f5132', icon: 'fa-star' });
+
+        const matchI = txtImprovement.match(regex);
+        if (matchI) kwList.push({ word: keyword, count: matchI.length, type: 'I', typeName: 'ควรปรับปรุง', bg: '#f8d7da', text: '#842029', icon: 'fa-circle-exclamation' });
+
+        const matchS = txtSuggestion.match(regex);
+        if (matchS) kwList.push({ word: keyword, count: matchS.length, type: 'S', typeName: 'ข้อเสนอแนะ', bg: '#fff3cd', text: '#664d03', icon: 'fa-lightbulb' });
+      });
+
+      kwList.sort((a, b) => b.count - a.count);
+      const topKeywords = kwList.slice(0, 10);
+
+      if (topKeywords.length === 0) {
+        container.innerHTML = '<span class="text-muted">ไม่พบคำสำคัญยอดฮิตในรอบนี้</span>';
+        return;
+      }
+
+      const highlightWords = topKeywords.map(item => item.word);
+
+      topKeywords.forEach(item => {
+        const span = document.createElement('span');
+        span.className = 'keyword-badge';
+        span.style.backgroundColor = item.bg;
+        span.style.color = item.text;
+        span.style.border = `1px solid ${item.text}33`;
+        
+        span.innerHTML = `
+          <i class="fa-solid ${item.icon} me-1 small"></i> 
+          <b>${item.word}</b> (${item.count} ครั้ง) 
+          <span style="font-size: 0.75rem; opacity: 0.8; block-size: fit-content; margin-left: 4px; padding-left: 4px; border-left: 1px solid ${item.text}55;">
+            ${item.typeName}
+          </span>
+        `;
+        container.appendChild(span);
+      });
+
+      renderData(data, highlightWords);
+    }
+
+    function renderData(data, highlightWords = []) {
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('mainDisplay').style.display = 'block';
+
+      const render = (containerId, items, className) => {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        if (!items || items.length === 0) {
+          container.innerHTML = '<div class="text-center p-4 text-muted bg-white rounded-3">ไม่มีข้อมูลหัวข้อนี้</div>';
+          return;
+        }
+        items.forEach(text => {
+          const div = document.createElement('div');
+          div.className = `feedback-item ${className}`;
+          let processedText = text;
+          if (highlightWords.length > 0) {
+            highlightWords.forEach(word => {
+              const regex = new RegExp(word, 'gi');
+              processedText = processedText.replace(regex, match => `<mark class="keyword-hl">${match}</mark>`);
+            });
+          }
+          div.innerHTML = processedText; 
+          container.appendChild(div);
+        });
+      };
+
+      render('highlightsList', data.highlights, 'item-highlight');
+      render('improvementsList', data.improvements, 'item-improvement');
+      render('suggestionsList', data.suggestions, 'item-suggestion');
+    }
+  </script>
+  <div class="form-document-tag">F-SA-030/02</div>
+</body>
+</html>
