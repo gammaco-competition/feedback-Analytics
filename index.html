@@ -212,12 +212,22 @@
       pointer-events: none; 
     }
 
+    /* 🟢 สไตล์ป้ายยอดวิวขวาบน */
+    .views-badge {
+      background-color: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+      font-size: 0.75rem;
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-weight: 600;
+    }
+    .views-badge i {
+      color: #64748b;
+    }
+
     @media (max-width: 576px) {
-      .form-document-tag {
-        bottom: 8px;
-        right: 10px;
-        font-size: 0.7rem;
-      }
+      .form-document-tag { bottom: 8px; right: 10px; font-size: 0.7rem; }
     }
   </style>
 </head>
@@ -226,8 +236,18 @@
   <div class="app-container">
     <div id="versionDisplay" class="version-tag">...</div>
 
-    <div class="header-section">
-      <h2><i class="fa-solid fa-comments text-primary me-2"></i> Feedback & Analytics</h2>
+    <!-- ส่วนหัวเว็บบวกกล่องแสดงสถานะและยอดวิว -->
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center pt-4 border-bottom pb-2 mb-3 gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <h2 class="m-0 font-weight-bold" style="font-size: 1.5rem; color: #1e293b;"><i class="fa-solid fa-comments text-primary me-2"></i> Feedback & Analytics</h2>
+      </div>
+      <!-- 🟢 เพิ่มป้ายแสดงยอดนับจำนวนผู้ใช้งานสะสมที่นี่ -->
+      <div class="d-flex gap-2 align-items-center">
+        <span class="views-badge"><i class="fa-solid fa-eye me-1"></i> ผู้เข้าชมรวม: <span id="pageViewsCount" class="text-primary">...</span> ครั้ง</span>
+        <div class="bg-white border text-muted px-3 py-1 rounded-full font-medium" style="font-size: 0.75rem;">
+          <span class="w-2 h-2 rounded-full bg-success d-inline-block me-1 animate-pulse" style="width: 7px; height: 7px;"></span> SYSTEM ONLINE
+        </div>
+      </div>
     </div>
 
     <div class="selection-card">
@@ -342,16 +362,24 @@
 
   <script>
     // ⚠️ นำลิงก์ Web App URL ที่ได้จากหน้า Google Apps Script มาวางแทนช่องว่างนี้ (สำหรับเวลาเปิดใช้งานผ่าน GitHub)
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzFhv4bBrbgSLglNfRRQz1Gj-Ng-yCrsNVaMGgHl0cxu6qGFAEe5exRhTLUTP7jAIJ7zQ/exec";
+    const WEB_APP_URL = "วาง_WEB_APP_URL_ของคุณตรงนี้";
 
     let feedbackChart = null;
 
-    // ระบบตรวจจับพิกัดสากล (ถ้าเปิดในคลังสคริปต์ของ Google จะดึง URL ตนเองมาใช้ทำสัญญารับส่งทันที)
+    // ระบบตรวจจับพิกัดสากล
     function getAPIEndpoint() {
       if (window.location.href.indexOf('script.google.com') !== -1) {
         return window.location.href.replace(/[\?#].*$/, '');
       }
       return WEB_APP_URL;
+    }
+
+    // ตรวจหาแพลตฟอร์มปัจจุบันเพื่อใช้ส่งไปบันทึกสถิติ
+    function currentPlatformName() {
+      if (window.location.href.indexOf('script.google.com') !== -1) {
+        return "Google Web App";
+      }
+      return "GitHub Pages";
     }
 
     async function fetchFromGAS(payload) {
@@ -365,10 +393,19 @@
     }
 
     window.onload = () => {
+      const pf = currentPlatformName();
+
+      // 🟢 ส่งคำสั่งนับคนเข้าใช้งานหน้าเว็บทันทีที่โหลด
+      fetchFromGAS({ action: 'logPageView', platform: pf }).then(res => {
+        if(res.success) document.getElementById('pageViewsCount').textContent = res.totalViews;
+      }).catch(err => console.error(err));
+
+      // โหลดแอปพลิเคชันเวอร์ชัน
       fetchFromGAS({ action: 'getAppVersion' }).then(res => {
         if(res.success) document.getElementById('versionDisplay').textContent = res.version;
       }).catch(err => console.error(err));
 
+      // โหลดรายการ Dropdown
       fetchFromGAS({ action: 'getDropdownList' }).then(res => {
         if(res.success) populateDropdown(res.list);
       }).catch(err => console.error(err));
